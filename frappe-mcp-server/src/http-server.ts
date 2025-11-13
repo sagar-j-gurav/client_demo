@@ -301,6 +301,7 @@ class FrappeHTTPMCPServer {
     this.app.listen(port, host, () => {
       console.log(`Frappe MCP HTTP Server running on http://${host}:${port}`);
       console.log(`Environment: ${config.environment}`);
+      console.log(`Frappe API URL: ${config.frappe.apiUrl}`);
       console.log(`Streamable HTTP endpoint: http://${host}:${port}/sse`);
       console.log(`Health check: http://${host}:${port}/health`);
       console.log(`Use this URL in MCP Inspector: http://${host}:${port}/sse`);
