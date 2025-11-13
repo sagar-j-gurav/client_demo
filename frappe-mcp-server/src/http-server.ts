@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * Frappe MCP Server - HTTP SSE Transport
+ * Frappe MCP Server - HTTP Streamable Transport
  * MCP server for Frappe CRM Lead management with HTTP Streamable support
  */
 
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
-import { SSEServerTransport } from '@modelcontextprotocol/sdk/server/sse.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
@@ -257,27 +257,37 @@ class FrappeHTTPMCPServer {
       });
     });
 
-    // SSE endpoint for MCP
-    this.app.get('/sse', async (req, res) => {
-      console.log('New SSE connection established');
+    // Streamable HTTP endpoint for MCP
+    this.app.post('/sse', async (req, res) => {
+      console.log('New Streamable HTTP request received');
 
+      // Create a new MCP server and transport for each request
+      // This prevents request ID collisions
       const server = this.createMCPServer();
-      const transport = new SSEServerTransport('/message', res);
-
-      await server.connect(transport);
-
-      // Keep connection alive
-      req.on('close', () => {
-        console.log('SSE connection closed');
-        server.close();
+      const transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: undefined, // Stateless mode - new transport per request
       });
-    });
 
-    // POST endpoint for MCP messages
-    this.app.post('/message', async (req, res) => {
-      // This endpoint is handled by the SSE transport
-      // It's a placeholder for the MCP SDK
-      res.status(200).send();
+      // Clean up on connection close
+      res.on('close', () => {
+        console.log('Streamable HTTP connection closed');
+        transport.close();
+      });
+
+      try {
+        // Connect the server to the transport
+        await server.connect(transport);
+
+        // Handle the request
+        await transport.handleRequest(req, res, req.body);
+      } catch (error) {
+        console.error('Error handling MCP request:', error);
+        if (!res.headersSent) {
+          res.status(500).json({
+            error: error instanceof Error ? error.message : 'Internal server error',
+          });
+        }
+      }
     });
   }
 
@@ -291,8 +301,9 @@ class FrappeHTTPMCPServer {
     this.app.listen(port, host, () => {
       console.log(`Frappe MCP HTTP Server running on http://${host}:${port}`);
       console.log(`Environment: ${config.environment}`);
-      console.log(`SSE endpoint: http://${host}:${port}/sse`);
+      console.log(`Streamable HTTP endpoint: http://${host}:${port}/sse`);
       console.log(`Health check: http://${host}:${port}/health`);
+      console.log(`Use this URL in MCP Inspector: http://${host}:${port}/sse`);
     });
   }
 }

@@ -10,7 +10,7 @@ export const devConfig = {
     apiSecret: process.env.FRAPPE_API_SECRET || '',
   },
   http: {
-    enabled: false, // HTTP disabled by default in dev, use STDIO
+    enabled: true, // HTTP enabled for Streamable HTTP transport
     port: parseInt(process.env.HTTP_PORT || '3000'),
     host: process.env.HTTP_HOST || 'localhost',
   },

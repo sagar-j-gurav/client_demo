@@ -26,6 +26,7 @@ NODE_ENV=dev
 FRAPPE_API_URL=https://your-frappe-instance.com
 FRAPPE_API_KEY=your_api_key_here
 FRAPPE_API_SECRET=your_api_secret_here
+HTTP_PORT=3000
 ```
 
 ### 3. Build Project
@@ -34,16 +35,23 @@ FRAPPE_API_SECRET=your_api_secret_here
 npm run build
 ```
 
-### 4. Test with MCP Inspector
+### 4. Test with MCP Inspector (HTTP Streamable)
 
+**Start the HTTP server:**
+```bash
+npm run dev:http
+```
+
+**Open MCP Inspector:**
+- Go to [https://inspector.modelcontextprotocol.io](https://inspector.modelcontextprotocol.io)
+- Enter URL: `http://localhost:3000/sse`
+- Select transport: **Streamable HTTP**
+- Click "Connect"
+
+**Or test with STDIO:**
 ```bash
 npm run inspector
 ```
-
-This will:
-- Start MCP Inspector on http://localhost:5173
-- Connect your server
-- Open browser automatically
 
 ## Quick Test Examples
 

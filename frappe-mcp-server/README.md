@@ -4,7 +4,7 @@ A Model Context Protocol (MCP) server for Frappe/ERPNext CRM Lead management. Th
 
 ## Features
 
-- **Multiple Transport Modes**: Supports both STDIO and HTTP SSE transports
+- **Multiple Transport Modes**: Supports both STDIO and **HTTP Streamable** transports (MCP spec 2025-03-26)
 - **Environment Management**: Separate configurations for Development, UAT, and Production
 - **Process Management**: PM2 integration for UAT and Production deployments
 - **Three Core Tools**:
@@ -35,7 +35,7 @@ This MCP server supports the following custom fields for product development and
 frappe-mcp-server/
 ├── src/
 │   ├── index.ts                 # STDIO transport server
-│   ├── http-server.ts           # HTTP SSE transport server
+│   ├── http-server.ts           # HTTP Streamable transport server
 │   ├── frappe-client.ts         # Frappe API client
 │   ├── tools/
 │   │   ├── search-lead.ts       # Search lead tool
@@ -90,21 +90,32 @@ frappe-mcp-server/
 
 ## Usage
 
-### Development Mode (STDIO - No PM2)
+### Development Mode
 
-For development with STDIO transport (used with MCP Inspector or Claude Desktop):
+#### Option 1: STDIO Transport (for Claude Desktop)
+
+For development with STDIO transport:
 
 ```bash
 npm run dev
 ```
 
-For development with HTTP transport:
+Use this mode with Claude Desktop or when running through MCP Inspector with STDIO.
+
+#### Option 2: HTTP Streamable Transport (for MCP Inspector)
+
+For development with HTTP Streamable transport:
 
 ```bash
 npm run dev:http
 ```
 
 The HTTP server will start on `http://localhost:3000` (or the port specified in `.env`).
+
+**To test with MCP Inspector:**
+1. Start the HTTP server: `npm run dev:http`
+2. In MCP Inspector, use URL: `http://localhost:3000/sse`
+3. Select transport type: `streamable-http`
 
 ### UAT Mode (with PM2)
 
@@ -186,14 +197,36 @@ pm2 delete all
 
 ## Testing
 
-### Using MCP Inspector (STDIO Transport)
+### Using MCP Inspector with HTTP Streamable Transport (Recommended)
 
-1. **Install MCP Inspector** (if not already installed):
+1. **Start the HTTP server**:
    ```bash
-   npx @modelcontextprotocol/inspector
+   npm run dev:http
    ```
 
-2. **Run the inspector**:
+   You should see:
+   ```
+   Frappe MCP HTTP Server running on http://localhost:3000
+   Streamable HTTP endpoint: http://localhost:3000/sse
+   ```
+
+2. **Open MCP Inspector**:
+   - Navigate to [https://inspector.modelcontextprotocol.io](https://inspector.modelcontextprotocol.io)
+   - Or run locally: `npx @modelcontextprotocol/inspector`
+
+3. **Connect to your server**:
+   - In the Inspector, enter URL: `http://localhost:3000/sse`
+   - Select transport type: **Streamable HTTP**
+   - Click "Connect"
+
+4. **Test the tools**:
+   - `search_lead`: Search for leads
+   - `add_lead`: Create new leads
+   - `update_lead`: Update existing leads
+
+### Using MCP Inspector with STDIO Transport
+
+1. **Run the inspector with STDIO**:
    ```bash
    npm run inspector
    ```
@@ -203,26 +236,26 @@ pm2 delete all
    npx @modelcontextprotocol/inspector node dist/index.js
    ```
 
-3. **Test the tools** in the inspector web interface:
-   - Navigate to the URL shown in the terminal (usually `http://localhost:5173`)
-   - Connect to the server
+2. **Test the tools** in the inspector web interface:
+   - Navigate to the URL shown in the terminal (usually `http://localhost:6274`)
+   - The server will auto-connect via STDIO
    - Test each tool: `search_lead`, `add_lead`, `update_lead`
 
-### Using HTTP SSE Transport
+### Testing HTTP Endpoints
 
-1. **Start the HTTP server**:
-   ```bash
-   npm run dev:http
-   ```
-
-2. **Test health endpoint**:
+1. **Test health endpoint**:
    ```bash
    curl http://localhost:3000/health
    ```
 
-3. **Connect via SSE**:
-   - SSE endpoint: `http://localhost:3000/sse`
-   - Message endpoint: `http://localhost:3000/message`
+   Expected response:
+   ```json
+   {
+     "status": "healthy",
+     "environment": "dev",
+     "version": "1.0.0"
+   }
+   ```
 
 ### Using with Claude Desktop
 
