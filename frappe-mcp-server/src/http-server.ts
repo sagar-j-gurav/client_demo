@@ -5,6 +5,10 @@
  * MCP server for Frappe CRM Lead management with HTTP Streamable support
  */
 
+// Load environment variables first, before importing config
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 import {
@@ -13,15 +17,11 @@ import {
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
 import express from 'express';
-import dotenv from 'dotenv';
 import { FrappeClient } from './frappe-client.js';
-import { config } from './config/index.js';
+import { getConfig } from './config/index.js';
 import { searchLeadSchema, searchLead, type SearchLeadArgs } from './tools/search-lead.js';
 import { addLeadSchema, addLead, type AddLeadArgs } from './tools/add-lead.js';
 import { updateLeadSchema, updateLead, type UpdateLeadArgs } from './tools/update-lead.js';
-
-// Load environment variables
-dotenv.config();
 
 /**
  * HTTP MCP Server class
@@ -29,6 +29,7 @@ dotenv.config();
 class FrappeHTTPMCPServer {
   private app: express.Application;
   private frappeClient: FrappeClient;
+  private config = getConfig();
 
   constructor() {
     this.app = express();
@@ -36,9 +37,9 @@ class FrappeHTTPMCPServer {
 
     // Initialize Frappe client
     this.frappeClient = new FrappeClient(
-      config.frappe.apiUrl,
-      config.frappe.apiKey,
-      config.frappe.apiSecret
+      this.config.frappe.apiUrl,
+      this.config.frappe.apiKey,
+      this.config.frappe.apiSecret
     );
 
     this.setupRoutes();
@@ -252,7 +253,7 @@ class FrappeHTTPMCPServer {
     this.app.get('/health', (req, res) => {
       res.json({
         status: 'healthy',
-        environment: config.environment,
+        environment: this.config.environment,
         version: '1.0.0',
       });
     });
@@ -295,13 +296,13 @@ class FrappeHTTPMCPServer {
    * Start the HTTP server
    */
   start(): void {
-    const port = config.http.port;
-    const host = config.http.host;
+    const port = this.config.http.port;
+    const host = this.config.http.host;
 
     this.app.listen(port, host, () => {
       console.log(`Frappe MCP HTTP Server running on http://${host}:${port}`);
-      console.log(`Environment: ${config.environment}`);
-      console.log(`Frappe API URL: ${config.frappe.apiUrl}`);
+      console.log(`Environment: ${this.config.environment}`);
+      console.log(`Frappe API URL: ${this.config.frappe.apiUrl}`);
       console.log(`Streamable HTTP endpoint: http://${host}:${port}/sse`);
       console.log(`Health check: http://${host}:${port}/health`);
       console.log(`Use this URL in MCP Inspector: http://${host}:${port}/sse`);

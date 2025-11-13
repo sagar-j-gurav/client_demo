@@ -5,6 +5,10 @@
  * MCP server for Frappe CRM Lead management
  */
 
+// Load environment variables first, before importing config
+import dotenv from 'dotenv';
+dotenv.config();
+
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -12,15 +16,11 @@ import {
   ListToolsRequestSchema,
   Tool,
 } from '@modelcontextprotocol/sdk/types.js';
-import dotenv from 'dotenv';
 import { FrappeClient } from './frappe-client.js';
-import { config } from './config/index.js';
+import { getConfig } from './config/index.js';
 import { searchLeadSchema, searchLead, type SearchLeadArgs } from './tools/search-lead.js';
 import { addLeadSchema, addLead, type AddLeadArgs } from './tools/add-lead.js';
 import { updateLeadSchema, updateLead, type UpdateLeadArgs } from './tools/update-lead.js';
-
-// Load environment variables
-dotenv.config();
 
 /**
  * Main MCP Server class
@@ -30,6 +30,9 @@ class FrappeMCPServer {
   private frappeClient: FrappeClient;
 
   constructor() {
+    // Get config after env vars are loaded
+    const config = getConfig();
+    
     // Initialize Frappe client
     this.frappeClient = new FrappeClient(
       config.frappe.apiUrl,
@@ -439,6 +442,7 @@ class FrappeMCPServer {
     await this.server.connect(transport);
 
     // Log startup info to stderr (not stdout, which is used for MCP communication)
+    const config = getConfig();
     console.error('Frappe MCP Server started');
     console.error(`Environment: ${config.environment}`);
     console.error(`Frappe API URL: ${config.frappe.apiUrl}`);
