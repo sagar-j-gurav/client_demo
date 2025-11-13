@@ -103,10 +103,22 @@ export type AddLeadArgs = z.infer<typeof addLeadSchema>;
  * Execute add lead operation
  */
 export async function addLead(args: AddLeadArgs, frappeClient: FrappeClient) {
-  // Build the payload
-  const payload: CreateLeadPayload = {
-    ...args,
+  // Build the payload - only include fields with actual values
+  // This prevents sending undefined/null/empty values to Frappe
+  const payload: CreateLeadPayload = {};
+
+  // Helper function to add field only if it has a value
+  const addIfHasValue = (key: keyof AddLeadArgs, value: any) => {
+    if (value !== undefined && value !== null && value !== '') {
+      (payload as any)[key] = value;
+    }
   };
+
+  // Add each field only if it has a value
+  Object.keys(args).forEach((key) => {
+    const value = (args as any)[key];
+    addIfHasValue(key as keyof AddLeadArgs, value);
+  });
 
   // Create the lead
   const newLead = await frappeClient.createLead(payload);

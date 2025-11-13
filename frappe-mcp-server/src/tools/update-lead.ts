@@ -126,15 +126,24 @@ export type UpdateLeadArgs = z.infer<typeof updateLeadSchema>;
 export async function updateLead(args: UpdateLeadArgs, frappeClient: FrappeClient) {
   const { lead_id, ...updateFields } = args;
 
+  // Build the payload - only include fields with actual values
+  // This prevents sending undefined/null/empty values to Frappe
+  const payload: UpdateLeadPayload = {};
+
+  // Add each field only if it has a value
+  Object.keys(updateFields).forEach((key) => {
+    const value = (updateFields as any)[key];
+    // Include the value if it's not undefined, null, or empty string
+    // Note: We allow 0 and false as valid values
+    if (value !== undefined && value !== null && value !== '') {
+      (payload as any)[key] = value;
+    }
+  });
+
   // Check if there are any fields to update
-  if (Object.keys(updateFields).length === 0) {
+  if (Object.keys(payload).length === 0) {
     throw new Error('No fields provided to update. Please specify at least one field to update.');
   }
-
-  // Build the payload
-  const payload: UpdateLeadPayload = {
-    ...updateFields,
-  };
 
   // Update the lead
   const updatedLead = await frappeClient.updateLead(lead_id, payload);
