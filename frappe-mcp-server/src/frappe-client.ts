@@ -170,16 +170,17 @@ export class FrappeClient {
   async createLead(payload: CreateLeadPayload): Promise<Lead> {
     try {
       // Ensure we have at least one required field
-      if (!payload.lead_name && !payload.email_id && !payload.mobile_no) {
-        throw new Error('At least one of lead_name, email_id, or mobile_no is required');
+      // Note: payload uses actual Frappe field names (email, organization)
+      if (!payload.lead_name && !payload.email && !payload.mobile_no) {
+        throw new Error('At least one of lead_name, email, or mobile_no is required');
       }
 
       // If lead_name is not provided, construct it from first_name and last_name or email
       if (!payload.lead_name) {
         if (payload.first_name || payload.last_name) {
           payload.lead_name = [payload.first_name, payload.last_name].filter(Boolean).join(' ');
-        } else if (payload.email_id) {
-          payload.lead_name = payload.email_id.split('@')[0];
+        } else if (payload.email) {
+          payload.lead_name = payload.email.split('@')[0];
         } else if (payload.mobile_no) {
           payload.lead_name = `Lead ${payload.mobile_no}`;
         }

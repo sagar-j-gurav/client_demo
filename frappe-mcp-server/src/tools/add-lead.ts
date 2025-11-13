@@ -107,36 +107,88 @@ export type AddLeadArgs = z.infer<typeof addLeadSchema>;
  * Execute add lead operation
  */
 export async function addLead(args: AddLeadArgs, frappeClient: FrappeClient) {
+  // Validate that at least one contact method is provided
+  if (!args.email_id && !args.mobile_no && !args.phone) {
+    throw new Error(
+      'At least one contact method is required: email_id, mobile_no, or phone'
+    );
+  }
+
   // Build the payload - only include fields with actual values
   // This prevents sending undefined/null/empty values to Frappe
   const payload: CreateLeadPayload = {};
 
   // Helper function to add field only if it has a value
-  const addIfHasValue = (key: keyof AddLeadArgs, value: any) => {
+  const addIfHasValue = (frappeFieldName: string, value: any) => {
     if (value !== undefined && value !== null && value !== '') {
-      (payload as any)[key] = value;
+      (payload as any)[frappeFieldName] = value;
     }
   };
 
-  // Add each field only if it has a value
-  Object.keys(args).forEach((key) => {
-    const value = (args as any)[key];
-    addIfHasValue(key as keyof AddLeadArgs, value);
-  });
+  // Map MCP parameter names to Frappe CRM Lead field names
+  // IMPORTANT: CRM Lead uses 'email' not 'email_id', 'organization' not 'company_name'
+
+  // Basic Information
+  addIfHasValue('lead_name', args.lead_name);
+  addIfHasValue('first_name', args.first_name);
+  addIfHasValue('last_name', args.last_name);
+  addIfHasValue('salutation', args.salutation);
+  addIfHasValue('gender', args.gender);
+  addIfHasValue('job_title', args.job_title);
+
+  // Contact Information - MAP email_id → email
+  addIfHasValue('email', args.email_id);
+  addIfHasValue('mobile_no', args.mobile_no);
+  addIfHasValue('phone', args.phone);
+  addIfHasValue('whatsapp_no', args.whatsapp_no);
+  addIfHasValue('website', args.website);
+
+  // Company Information - MAP company_name → organization
+  addIfHasValue('organization', args.company_name);
+  addIfHasValue('annual_revenue', args.annual_revenue);
+
+  // Location
+  addIfHasValue('city', args.city);
+  addIfHasValue('state', args.state);
+  addIfHasValue('country', args.country);
+
+  // Classification
+  addIfHasValue('lead_owner', args.lead_owner);
+  addIfHasValue('industry', args.industry);
+  addIfHasValue('market_segment', args.market_segment);
+  addIfHasValue('territory', args.territory);
+  addIfHasValue('source', args.source);
+  addIfHasValue('type', args.type);
+  addIfHasValue('request_type', args.request_type);
+
+  // Custom Fields - use exact field names
+  addIfHasValue('custom_enquiry_type', args.custom_enquiry_type);
+  addIfHasValue('custom_enquiry_source', args.custom_enquiry_source);
+  addIfHasValue('custom_product_category', args.custom_product_category);
+  addIfHasValue('custom_lead_status', args.custom_lead_status);
+  addIfHasValue('custom_budget_range', args.custom_budget_range);
+  addIfHasValue('custom_timeline_expected', args.custom_timeline_expected);
+  addIfHasValue('custom_design_file_uploaded', args.custom_design_file_uploaded);
+  addIfHasValue('custom_prototype_quantity', args.custom_prototype_quantity);
+  addIfHasValue('custom__followup_notes', args.custom__followup_notes);
+  addIfHasValue('custom_information_pending_from_lead', args.custom_information_pending_from_lead);
+  addIfHasValue('custom_estimated_prototype_delivery', args.custom_estimated_prototype_delivery);
+  addIfHasValue('custom_requirement_details', args.custom_requirement_details);
 
   // Create the lead
   const newLead = await frappeClient.createLead(payload);
 
   // Format response
+  // IMPORTANT: Read from Frappe field names (email, organization) not MCP parameter names
   const responseText = [
     `Lead created successfully!`,
     ``,
     `Lead ID: ${newLead.name}`,
-    `Name: ${newLead.lead_name || 'N/A'}`,
-    `Email: ${newLead.email_id || 'N/A'}`,
+    `Name: ${newLead.lead_name || newLead.first_name || 'N/A'}`,
+    `Email: ${(newLead as any).email || 'N/A'}`,
     `Mobile: ${newLead.mobile_no || 'N/A'}`,
     `Phone: ${newLead.phone || 'N/A'}`,
-    `Company: ${newLead.company_name || 'N/A'}`,
+    `Company: ${(newLead as any).organization || 'N/A'}`,
     `Status: ${newLead.status || 'N/A'}`,
   ];
 

@@ -134,15 +134,69 @@ export async function updateLead(args: UpdateLeadArgs, frappeClient: FrappeClien
   // This prevents sending undefined/null/empty values to Frappe
   const payload: UpdateLeadPayload = {};
 
-  // Add each field only if it has a value
-  Object.keys(updateFields).forEach((key) => {
-    const value = (updateFields as any)[key];
+  // Helper function to add field only if it has a value
+  const addIfHasValue = (frappeFieldName: string, value: any) => {
     // Include the value if it's not undefined, null, or empty string
     // Note: We allow 0 and false as valid values
     if (value !== undefined && value !== null && value !== '') {
-      (payload as any)[key] = value;
+      (payload as any)[frappeFieldName] = value;
     }
-  });
+  };
+
+  // Map MCP parameter names to Frappe CRM Lead field names
+  // IMPORTANT: CRM Lead uses 'email' not 'email_id', 'organization' not 'company_name'
+
+  // Basic Information
+  addIfHasValue('lead_name', updateFields.lead_name);
+  addIfHasValue('first_name', updateFields.first_name);
+  addIfHasValue('last_name', updateFields.last_name);
+  addIfHasValue('salutation', updateFields.salutation);
+  addIfHasValue('gender', updateFields.gender);
+  addIfHasValue('job_title', updateFields.job_title);
+
+  // Contact Information - MAP email_id → email
+  addIfHasValue('email', updateFields.email_id);
+  addIfHasValue('mobile_no', updateFields.mobile_no);
+  addIfHasValue('phone', updateFields.phone);
+  addIfHasValue('whatsapp_no', updateFields.whatsapp_no);
+  addIfHasValue('website', updateFields.website);
+
+  // Company Information - MAP company_name → organization
+  addIfHasValue('organization', updateFields.company_name);
+  addIfHasValue('annual_revenue', updateFields.annual_revenue);
+
+  // Location
+  addIfHasValue('city', updateFields.city);
+  addIfHasValue('state', updateFields.state);
+  addIfHasValue('country', updateFields.country);
+
+  // Classification
+  addIfHasValue('lead_owner', updateFields.lead_owner);
+  addIfHasValue('industry', updateFields.industry);
+  addIfHasValue('market_segment', updateFields.market_segment);
+  addIfHasValue('territory', updateFields.territory);
+  addIfHasValue('source', updateFields.source);
+  addIfHasValue('type', updateFields.type);
+  addIfHasValue('status', updateFields.status);
+  addIfHasValue('request_type', updateFields.request_type);
+
+  // Custom Fields - use exact field names
+  addIfHasValue('custom_enquiry_type', updateFields.custom_enquiry_type);
+  addIfHasValue('custom_enquiry_source', updateFields.custom_enquiry_source);
+  addIfHasValue('custom_product_category', updateFields.custom_product_category);
+  addIfHasValue('custom_lead_status', updateFields.custom_lead_status);
+  addIfHasValue('custom_budget_range', updateFields.custom_budget_range);
+  addIfHasValue('custom_timeline_expected', updateFields.custom_timeline_expected);
+  addIfHasValue('custom_design_file_uploaded', updateFields.custom_design_file_uploaded);
+  addIfHasValue('custom_prototype_quantity', updateFields.custom_prototype_quantity);
+  addIfHasValue('custom__followup_notes', updateFields.custom__followup_notes);
+  addIfHasValue('custom_information_pending_from_lead', updateFields.custom_information_pending_from_lead);
+  addIfHasValue('custom_estimated_prototype_delivery', updateFields.custom_estimated_prototype_delivery);
+  addIfHasValue('custom_last_bot_interaction', updateFields.custom_last_bot_interaction);
+  addIfHasValue('custom_requirement_details', updateFields.custom_requirement_details);
+
+  // Disable flag
+  addIfHasValue('disabled', updateFields.disabled);
 
   // Check if there are any fields to update
   if (Object.keys(payload).length === 0) {
@@ -153,15 +207,16 @@ export async function updateLead(args: UpdateLeadArgs, frappeClient: FrappeClien
   const updatedLead = await frappeClient.updateLead(lead_id, payload);
 
   // Format response
+  // IMPORTANT: Read from Frappe field names (email, organization) not MCP parameter names
   const responseText = [
     `Lead updated successfully!`,
     ``,
     `Lead ID: ${updatedLead.name}`,
-    `Name: ${updatedLead.lead_name || 'N/A'}`,
-    `Email: ${updatedLead.email_id || 'N/A'}`,
+    `Name: ${updatedLead.lead_name || updatedLead.first_name || 'N/A'}`,
+    `Email: ${(updatedLead as any).email || 'N/A'}`,
     `Mobile: ${updatedLead.mobile_no || 'N/A'}`,
     `Phone: ${updatedLead.phone || 'N/A'}`,
-    `Company: ${updatedLead.company_name || 'N/A'}`,
+    `Company: ${(updatedLead as any).organization || 'N/A'}`,
     `Status: ${updatedLead.status || 'N/A'}`,
   ];
 

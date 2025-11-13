@@ -21,7 +21,8 @@ export interface Lead {
   image?: string;
 
   // Contact Information
-  email_id?: string;
+  email_id?: string; // Old Lead doctype field name (deprecated)
+  email?: string; // CRM Lead uses this field name
   mobile_no?: string;
   phone?: string;
   phone_ext?: string;
@@ -30,7 +31,8 @@ export interface Lead {
   website?: string;
 
   // Company Information
-  company_name?: string;
+  company_name?: string; // Old Lead doctype field name (deprecated)
+  organization?: string; // CRM Lead uses this field name
   company?: string;
   annual_revenue?: number;
   no_of_employees?: string;
@@ -120,11 +122,12 @@ export interface LeadSearchFilters {
 
 /**
  * Lead creation payload
+ * Uses actual Frappe CRM Lead field names
  */
 export interface CreateLeadPayload {
   // Required fields
   lead_name?: string;
-  email_id?: string;
+  email?: string; // CRM Lead uses 'email' not 'email_id'
   mobile_no?: string;
 
   // Optional personal information
@@ -135,7 +138,7 @@ export interface CreateLeadPayload {
   job_title?: string;
 
   // Optional company information
-  company_name?: string;
+  organization?: string; // CRM Lead uses 'organization' not 'company_name'
   annual_revenue?: number;
 
   // Optional contact information
