@@ -1,0 +1,46 @@
+{
+  "name": "frappe-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP server for Frappe CRM Lead management with STDIO and HTTP support",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc && chmod +x dist/index.js",
+    "dev": "tsx src/index.ts",
+    "dev:http": "tsx src/http-server.ts",
+    "start": "node dist/index.js",
+    "start:http": "node dist/http-server.js",
+    "uat": "pm2 start ecosystem.config.js --only frappe-mcp-uat",
+    "prod": "pm2 start ecosystem.config.js --only frappe-mcp-prod",
+    "stop:uat": "pm2 stop frappe-mcp-uat",
+    "stop:prod": "pm2 stop frappe-mcp-prod",
+    "restart:uat": "pm2 restart frappe-mcp-uat",
+    "restart:prod": "pm2 restart frappe-mcp-prod",
+    "logs:uat": "pm2 logs frappe-mcp-uat",
+    "logs:prod": "pm2 logs frappe-mcp-prod",
+    "inspector": "npx @modelcontextprotocol/inspector node dist/index.js"
+  },
+  "keywords": [
+    "mcp",
+    "frappe",
+    "erpnext",
+    "crm",
+    "lead-management"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.0",
+    "@types/node": "^22.10.2",
+    "pm2": "^5.4.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}
