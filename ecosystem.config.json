@@ -1,0 +1,22 @@
+{
+  "apps": [
+    {
+      "name": "rag-fastapi-uat",
+      "script": "python3",
+      "args": "-m uvicorn app.main:app --host 0.0.0.0 --port 8000",
+      "interpreter": "venv/bin/python3",
+      "env": {
+        "ENV": "uat"
+      }
+    },
+    {
+      "name": "rag-fastapi-prod",
+      "script": "python3",
+      "args": "-m uvicorn app.main:app --host 0.0.0.0 --port 8000",
+      "interpreter": "venv/bin/python3",
+      "env": {
+        "ENV": "prod"
+      }
+    }
+  ]
+}
