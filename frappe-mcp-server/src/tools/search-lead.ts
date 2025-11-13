@@ -94,11 +94,11 @@ export async function searchLead(args: SearchLeadArgs, frappeClient: FrappeClien
       const parts = [
         `Lead ${index + 1}: ${lead.name}`,
         `  Name: ${lead.lead_name || 'N/A'}`,
-        `  Email: ${lead.email_id || 'N/A'}`,
+        `  Email: ${(lead as any).email || 'N/A'}`,
         `  Mobile: ${lead.mobile_no || 'N/A'}`,
         `  Phone: ${lead.phone || 'N/A'}`,
-        `  WhatsApp: ${lead.whatsapp_no || 'N/A'}`,
-        `  Company: ${lead.company_name || 'N/A'}`,
+        `  Organization: ${(lead as any).organization || 'N/A'}`,
+        `  Website: ${(lead as any).website || 'N/A'}`,
         `  Status: ${lead.status || 'N/A'}`,
         `  Lead Owner: ${lead.lead_owner || 'N/A'}`,
       ];

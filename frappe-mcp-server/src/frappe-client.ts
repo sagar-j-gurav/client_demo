@@ -62,7 +62,7 @@ export class FrappeClient {
       const filterConditions: any[] = [];
 
       if (filters.email_id) {
-        filterConditions.push(['email_id', 'like', `%${filters.email_id}%`]);
+        filterConditions.push(['email', 'like', `%${filters.email_id}%`]);
       }
 
       if (filters.mobile_no) {
@@ -82,7 +82,7 @@ export class FrappeClient {
       }
 
       if (filters.company_name) {
-        filterConditions.push(['company_name', 'like', `%${filters.company_name}%`]);
+        filterConditions.push(['organization', 'like', `%${filters.company_name}%`]);
       }
 
       if (filters.status) {
@@ -93,32 +93,39 @@ export class FrappeClient {
         filterConditions.push(['custom_lead_status', '=', filters.custom_lead_status]);
       }
 
-      // Standard CRM Lead fields
+      // CRM Lead fields (using correct field names for CRM Lead doctype)
       const fields = [
         'name',
         'lead_name',
-        'email_id',
+        'email',  // Note: CRM Lead uses 'email' not 'email_id'
         'mobile_no',
         'phone',
-        'whatsapp_no',
-        'company_name',
+        'organization',  // Note: CRM Lead uses 'organization' not 'company_name'
+        'website',
         'status',
         'lead_owner',
+        'territory',
+        'industry',
+        'job_title',
+        'source',
+        'first_name',
+        'last_name',
+        'salutation',
         'creation',
         'modified',
-        // Add custom fields below once you've created them in Frappe
-        // 'custom_enquiry_type',
-        // 'custom_enquiry_source',
-        // 'custom_product_category',
-        // 'custom_lead_status',
-        // 'custom_budget_range',
-        // 'custom_timeline_expected',
-        // 'custom_design_file_uploaded',
-        // 'custom_prototype_quantity',
-        // 'custom__followup_notes',
-        // 'custom_last_bot_interaction',
-        // 'custom_information_pending_from_lead',
-        // 'custom_estimated_prototype_delivery',
+        // Custom fields (now enabled)
+        'custom_enquiry_type',
+        'custom_enquiry_source',
+        'custom_product_category',
+        'custom_lead_status',
+        'custom_budget_range',
+        'custom_timeline_expected',
+        'custom_design_file_uploaded',
+        'custom_prototype_quantity',
+        'custom__followup_notes',
+        'custom_last_bot_interaction',
+        'custom_information_pending_from_lead',
+        'custom_estimated_prototype_delivery',
       ];
 
       const params: any = {
