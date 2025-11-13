@@ -124,21 +124,67 @@ class FrappeHTTPMCPServer {
           inputSchema: {
             type: 'object',
             properties: {
-              // Include same properties as STDIO version
+              // Basic Information
               lead_name: { type: 'string', description: 'Full name of the lead' },
               first_name: { type: 'string', description: 'First name' },
               last_name: { type: 'string', description: 'Last name' },
+              salutation: { type: 'string', description: 'Salutation (Mr, Ms, Dr, etc.)' },
+              gender: { type: 'string', description: 'Gender' },
+              job_title: { type: 'string', description: 'Job title' },
+
+              // Contact Information
               email_id: { type: 'string', format: 'email', description: 'Email address' },
               mobile_no: { type: 'string', description: 'Mobile number' },
               phone: { type: 'string', description: 'Phone number' },
+              whatsapp_no: { type: 'string', description: 'WhatsApp number' },
+              website: { type: 'string', description: 'Website URL' },
+
+              // Company Information
               company_name: { type: 'string', description: 'Company name' },
+              annual_revenue: { type: 'number', description: 'Annual revenue' },
+
+              // Location
+              city: { type: 'string', description: 'City' },
+              state: { type: 'string', description: 'State' },
+              country: { type: 'string', description: 'Country' },
+
+              // Classification
+              lead_owner: { type: 'string', description: 'Lead owner (user email)' },
+              industry: { type: 'string', description: 'Industry' },
+              market_segment: { type: 'string', description: 'Market segment' },
+              territory: { type: 'string', description: 'Territory' },
+              source: { type: 'string', description: 'Lead source' },
+              type: {
+                type: 'string',
+                enum: ['Client', 'Channel Partner', 'Consultant'],
+                description: 'Lead type',
+              },
+              request_type: {
+                type: 'string',
+                enum: [
+                  'Product Enquiry',
+                  'Request for Information',
+                  'Suggestions',
+                  'Other',
+                ],
+                description: 'Request type',
+              },
+
+              // Custom Fields
               custom_enquiry_type: {
                 type: 'string',
                 enum: ['Product Development', 'Prototyping', 'Testing Services', 'Consultation'],
+                description: 'Type of enquiry',
+              },
+              custom_enquiry_source: {
+                type: 'string',
+                enum: ['Website Chat', 'Enquiry Form', 'Phone', 'Email'],
+                description: 'Source of enquiry',
               },
               custom_product_category: {
                 type: 'string',
                 enum: ['Electronics', 'Mechanical', 'Software', 'IoT', 'Medical Devices'],
+                description: 'Product category',
               },
               custom_lead_status: {
                 type: 'string',
@@ -152,27 +198,136 @@ class FrappeHTTPMCPServer {
                   'Converted',
                   'Lost',
                 ],
+                description: 'Custom lead status',
               },
               custom_budget_range: {
                 type: 'string',
                 enum: ['Under 50K', '50K-2L', '2L-5L', '5L+', 'Not Disclosed'],
+                description: 'Budget range',
               },
-              // Add other fields...
+              custom_timeline_expected: {
+                type: 'string',
+                enum: ['Urgent <2 weeks', '1 month', '2-3 months', 'Flexible'],
+                description: 'Expected timeline',
+              },
+              custom_design_file_uploaded: {
+                type: 'number',
+                minimum: 0,
+                maximum: 1,
+                description: 'Design file uploaded (0 or 1)',
+              },
+              custom_prototype_quantity: {
+                type: 'number',
+                description: 'Prototype quantity',
+              },
+              custom__followup_notes: {
+                type: 'string',
+                description: 'Follow-up notes',
+              },
+              custom_information_pending_from_lead: {
+                type: 'string',
+                description: 'Information pending from lead',
+              },
+              custom_estimated_prototype_delivery: {
+                type: 'string',
+                description: 'Estimated prototype delivery date (YYYY-MM-DD)',
+              },
+              custom_requirement_details: {
+                type: 'string',
+                description: 'Detailed requirement description from the lead',
+              },
             },
           },
         },
         {
           name: 'update_lead',
           description:
-            'Update an existing lead in Frappe CRM. Requires the lead ID and one or more fields to update.',
+            'Update an existing lead in Frappe CRM. Requires the lead ID and one or more fields to update. Supports all standard and custom fields.',
           inputSchema: {
             type: 'object',
             properties: {
-              lead_id: { type: 'string', description: 'Lead ID (name) to update - REQUIRED' },
-              // Include same properties as STDIO version
+              lead_id: {
+                type: 'string',
+                description: 'Lead ID (name) to update - REQUIRED',
+              },
+
+              // Basic Information
               lead_name: { type: 'string', description: 'Full name of the lead' },
+              first_name: { type: 'string', description: 'First name' },
+              last_name: { type: 'string', description: 'Last name' },
+              salutation: { type: 'string', description: 'Salutation (Mr, Ms, Dr, etc.)' },
+              gender: { type: 'string', description: 'Gender' },
+              job_title: { type: 'string', description: 'Job title' },
+
+              // Contact Information
               email_id: { type: 'string', format: 'email', description: 'Email address' },
               mobile_no: { type: 'string', description: 'Mobile number' },
+              phone: { type: 'string', description: 'Phone number' },
+              whatsapp_no: { type: 'string', description: 'WhatsApp number' },
+              website: { type: 'string', description: 'Website URL' },
+
+              // Company Information
+              company_name: { type: 'string', description: 'Company name' },
+              annual_revenue: { type: 'number', description: 'Annual revenue' },
+
+              // Location
+              city: { type: 'string', description: 'City' },
+              state: { type: 'string', description: 'State' },
+              country: { type: 'string', description: 'Country' },
+
+              // Classification
+              lead_owner: { type: 'string', description: 'Lead owner (user email)' },
+              industry: { type: 'string', description: 'Industry' },
+              market_segment: { type: 'string', description: 'Market segment' },
+              territory: { type: 'string', description: 'Territory' },
+              source: { type: 'string', description: 'Lead source' },
+              type: {
+                type: 'string',
+                enum: ['Client', 'Channel Partner', 'Consultant'],
+                description: 'Lead type',
+              },
+              status: {
+                type: 'string',
+                enum: [
+                  'Lead',
+                  'Open',
+                  'Replied',
+                  'Opportunity',
+                  'Quotation',
+                  'Lost Quotation',
+                  'Interested',
+                  'Converted',
+                  'Do Not Contact',
+                ],
+                description: 'Lead status',
+              },
+              request_type: {
+                type: 'string',
+                enum: [
+                  'Product Enquiry',
+                  'Request for Information',
+                  'Suggestions',
+                  'Other',
+                ],
+                description: 'Request type',
+              },
+
+              // Custom Fields
+              custom_enquiry_type: {
+                type: 'string',
+                enum: ['Product Development', 'Prototyping', 'Testing Services', 'Consultation'],
+                description: 'Type of enquiry',
+              },
+              custom_enquiry_source: {
+                type: 'string',
+                enum: ['Website Chat', 'Enquiry Form', 'Phone', 'Email'],
+                description: 'Source of enquiry',
+              },
+              custom_product_category: {
+                type: 'string',
+                enum: ['Electronics', 'Mechanical', 'Software', 'IoT', 'Medical Devices'],
+                description: 'Product category',
+              },
               custom_lead_status: {
                 type: 'string',
                 enum: [
@@ -185,9 +340,56 @@ class FrappeHTTPMCPServer {
                   'Converted',
                   'Lost',
                 ],
+                description: 'Custom lead status',
               },
-              custom__followup_notes: { type: 'string', description: 'Follow-up notes' },
-              // Add other fields...
+              custom_budget_range: {
+                type: 'string',
+                enum: ['Under 50K', '50K-2L', '2L-5L', '5L+', 'Not Disclosed'],
+                description: 'Budget range',
+              },
+              custom_timeline_expected: {
+                type: 'string',
+                enum: ['Urgent <2 weeks', '1 month', '2-3 months', 'Flexible'],
+                description: 'Expected timeline',
+              },
+              custom_design_file_uploaded: {
+                type: 'number',
+                minimum: 0,
+                maximum: 1,
+                description: 'Design file uploaded (0 or 1)',
+              },
+              custom_prototype_quantity: {
+                type: 'number',
+                description: 'Prototype quantity',
+              },
+              custom__followup_notes: {
+                type: 'string',
+                description: 'Follow-up notes',
+              },
+              custom_information_pending_from_lead: {
+                type: 'string',
+                description: 'Information pending from lead',
+              },
+              custom_estimated_prototype_delivery: {
+                type: 'string',
+                description: 'Estimated prototype delivery date (YYYY-MM-DD)',
+              },
+              custom_last_bot_interaction: {
+                type: 'string',
+                description: 'Last bot interaction datetime',
+              },
+              custom_requirement_details: {
+                type: 'string',
+                description: 'Detailed requirement description from the lead',
+              },
+
+              // Disable flag
+              disabled: {
+                type: 'number',
+                minimum: 0,
+                maximum: 1,
+                description: 'Disabled status (0 or 1)',
+              },
             },
             required: ['lead_id'],
           },
