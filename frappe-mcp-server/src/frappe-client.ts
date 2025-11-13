@@ -93,8 +93,7 @@ export class FrappeClient {
         filterConditions.push(['custom_lead_status', '=', filters.custom_lead_status]);
       }
 
-      const params = {
-        doctype: 'Lead',
+      const params: any = {
         fields: JSON.stringify([
           'name',
           'lead_name',
@@ -120,9 +119,13 @@ export class FrappeClient {
           'creation',
           'modified',
         ]),
-        filters: JSON.stringify(filterConditions),
         limit_page_length: 100,
       };
+
+      // Only add filters if there are any
+      if (filterConditions.length > 0) {
+        params.filters = JSON.stringify(filterConditions);
+      }
 
       const response = await this.client.get<FrappeListResponse<Lead>>('/api/resource/Lead', {
         params,
