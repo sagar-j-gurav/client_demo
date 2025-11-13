@@ -94,6 +94,7 @@ export interface Lead {
   custom_last_bot_interaction?: string;
   custom_information_pending_from_lead?: string;
   custom_estimated_prototype_delivery?: string;
+  custom_requirement_details?: string;
 
   // Standard Frappe fields
   owner?: string;
@@ -168,6 +169,7 @@ export interface CreateLeadPayload {
   custom__followup_notes?: string;
   custom_information_pending_from_lead?: string;
   custom_estimated_prototype_delivery?: string;
+  custom_requirement_details?: string;
 }
 
 /**

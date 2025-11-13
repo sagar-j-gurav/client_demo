@@ -95,6 +95,10 @@ export const addLeadSchema = z.object({
     .string()
     .optional()
     .describe('Estimated prototype delivery date (YYYY-MM-DD)'),
+  custom_requirement_details: z
+    .string()
+    .optional()
+    .describe('Detailed requirement description from the lead'),
 });
 
 export type AddLeadArgs = z.infer<typeof addLeadSchema>;

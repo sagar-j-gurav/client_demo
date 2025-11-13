@@ -134,6 +134,9 @@ export async function searchLead(args: SearchLeadArgs, frappeClient: FrappeClien
       if (lead.custom_information_pending_from_lead) {
         parts.push(`  Pending Info: ${lead.custom_information_pending_from_lead}`);
       }
+      if ((lead as any).custom_requirement_details) {
+        parts.push(`  Requirement Details: ${(lead as any).custom_requirement_details}`);
+      }
 
       parts.push(`  Created: ${lead.creation || 'N/A'}`);
       parts.push(`  Modified: ${lead.modified || 'N/A'}`);

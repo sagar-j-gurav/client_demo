@@ -222,6 +222,10 @@ class FrappeMCPServer {
                 type: 'string',
                 description: 'Estimated prototype delivery date (YYYY-MM-DD)',
               },
+              custom_requirement_details: {
+                type: 'string',
+                description: 'Detailed requirement description from the lead',
+              },
             },
           },
         },
@@ -363,6 +367,10 @@ class FrappeMCPServer {
               custom_last_bot_interaction: {
                 type: 'string',
                 description: 'Last bot interaction datetime',
+              },
+              custom_requirement_details: {
+                type: 'string',
+                description: 'Detailed requirement description from the lead',
               },
 
               // Disable flag

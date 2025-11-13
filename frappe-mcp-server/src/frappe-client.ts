@@ -126,6 +126,7 @@ export class FrappeClient {
         'custom_last_bot_interaction',
         'custom_information_pending_from_lead',
         'custom_estimated_prototype_delivery',
+        'custom_requirement_details',
       ];
 
       const params: any = {

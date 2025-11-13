@@ -113,6 +113,10 @@ export const updateLeadSchema = z.object({
     .optional()
     .describe('Estimated prototype delivery date (YYYY-MM-DD)'),
   custom_last_bot_interaction: z.string().optional().describe('Last bot interaction datetime'),
+  custom_requirement_details: z
+    .string()
+    .optional()
+    .describe('Detailed requirement description from the lead'),
 
   // Disable flag
   disabled: z.number().int().min(0).max(1).optional().describe('Disable lead (0 or 1)'),
