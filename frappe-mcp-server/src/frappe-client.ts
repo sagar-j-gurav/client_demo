@@ -93,32 +93,36 @@ export class FrappeClient {
         filterConditions.push(['custom_lead_status', '=', filters.custom_lead_status]);
       }
 
+      // Standard CRM Lead fields
+      const fields = [
+        'name',
+        'lead_name',
+        'email_id',
+        'mobile_no',
+        'phone',
+        'whatsapp_no',
+        'company_name',
+        'status',
+        'lead_owner',
+        'creation',
+        'modified',
+        // Add custom fields below once you've created them in Frappe
+        // 'custom_enquiry_type',
+        // 'custom_enquiry_source',
+        // 'custom_product_category',
+        // 'custom_lead_status',
+        // 'custom_budget_range',
+        // 'custom_timeline_expected',
+        // 'custom_design_file_uploaded',
+        // 'custom_prototype_quantity',
+        // 'custom__followup_notes',
+        // 'custom_last_bot_interaction',
+        // 'custom_information_pending_from_lead',
+        // 'custom_estimated_prototype_delivery',
+      ];
+
       const params: any = {
-        fields: JSON.stringify([
-          'name',
-          'lead_name',
-          'email_id',
-          'mobile_no',
-          'phone',
-          'whatsapp_no',
-          'company_name',
-          'status',
-          'lead_owner',
-          'custom_enquiry_type',
-          'custom_enquiry_source',
-          'custom_product_category',
-          'custom_lead_status',
-          'custom_budget_range',
-          'custom_timeline_expected',
-          'custom_design_file_uploaded',
-          'custom_prototype_quantity',
-          'custom__followup_notes',
-          'custom_last_bot_interaction',
-          'custom_information_pending_from_lead',
-          'custom_estimated_prototype_delivery',
-          'creation',
-          'modified',
-        ]),
+        fields: JSON.stringify(fields),
         limit_page_length: 100,
       };
 
@@ -127,7 +131,7 @@ export class FrappeClient {
         params.filters = JSON.stringify(filterConditions);
       }
 
-      const response = await this.client.get<FrappeListResponse<Lead>>('/api/resource/Lead', {
+      const response = await this.client.get<FrappeListResponse<Lead>>('/api/resource/CRM Lead', {
         params,
       });
 
@@ -142,7 +146,7 @@ export class FrappeClient {
    */
   async getLead(name: string): Promise<Lead | null> {
     try {
-      const response = await this.client.get<FrappeResponse<Lead>>(`/api/resource/Lead/${name}`);
+      const response = await this.client.get<FrappeResponse<Lead>>(`/api/resource/CRM Lead/${name}`);
       return response.data.data || response.data.message || null;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response?.status === 404) {
@@ -173,7 +177,7 @@ export class FrappeClient {
         }
       }
 
-      const response = await this.client.post<FrappeResponse<Lead>>('/api/resource/Lead', payload);
+      const response = await this.client.post<FrappeResponse<Lead>>('/api/resource/CRM Lead', payload);
 
       return response.data.data || response.data.message!;
     } catch (error) {
@@ -193,7 +197,7 @@ export class FrappeClient {
       }
 
       const response = await this.client.put<FrappeResponse<Lead>>(
-        `/api/resource/Lead/${name}`,
+        `/api/resource/CRM Lead/${name}`,
         payload
       );
 
