@@ -92,3 +92,30 @@ class DocumentMetadata(BaseModel):
     chunk_size: int
     chunk_overlap: int
     additional_metadata: Optional[Dict[str, Any]] = None
+
+
+class ConversationRequest(BaseModel):
+    """Request model for conversational agent."""
+    session_id: str = Field(..., min_length=1, max_length=255, description="Unique session identifier")
+    message: str = Field(..., min_length=1, max_length=2000, description="User message")
+
+    @validator("message")
+    def clean_message(cls, v):
+        """Clean and validate message."""
+        return v.strip()
+
+    @validator("session_id")
+    def clean_session_id(cls, v):
+        """Clean session ID."""
+        return v.strip()
+
+
+class ConversationResponse(BaseResponseModel):
+    """Response model for conversational agent."""
+    session_id: str
+    message: str
+    answer: str
+    response_type: str  # conversational, rag, lead_qualification, collecting_info, lead_created, error
+    sources: Optional[List[SourceChunk]] = None
+    metadata: Optional[Dict[str, Any]] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)

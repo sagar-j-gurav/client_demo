@@ -21,11 +21,15 @@ from app.core.models import (
     QueryRequest,
     QueryResponse,
     HealthResponse,
-    ErrorResponse
+    ErrorResponse,
+    ConversationRequest,
+    ConversationResponse
 )
 from app.core.document_processor import DocumentProcessor
 from app.core.rag_engine import RAGEngine
 from app.core.database import get_database
+from app.core.conversational_agent import ConversationalAgent
+from app.core.conversation_database import get_conversation_database
 
 # Configure logging
 logging.basicConfig(
@@ -37,30 +41,39 @@ logger = logging.getLogger(__name__)
 # Global instances
 rag_engine: Optional[RAGEngine] = None
 doc_processor: Optional[DocumentProcessor] = None
+conversational_agent: Optional[ConversationalAgent] = None
 settings = get_settings()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan manager."""
-    global rag_engine, doc_processor
-    
+    global rag_engine, doc_processor, conversational_agent
+
     # Startup
     logger.info("Starting RAG FastAPI application...")
     try:
-        # Initialize database first
+        # Initialize databases first
         db = get_database()
-        logger.info("Database initialized successfully")
-        
+        logger.info("Q&A database initialized successfully")
+
+        conversation_db = get_conversation_database()
+        logger.info("Conversation database initialized successfully")
+
+        # Initialize RAG engine
         rag_engine = RAGEngine()
         doc_processor = DocumentProcessor()
         logger.info("RAG engine initialized successfully")
+
+        # Initialize conversational agent
+        conversational_agent = ConversationalAgent(rag_engine)
+        logger.info("Conversational agent initialized successfully")
     except Exception as e:
         logger.error(f"Failed to initialize application: {e}")
         raise
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down RAG FastAPI application...")
 
@@ -87,15 +100,64 @@ app.add_middleware(
 async def root():
     """Root endpoint."""
     return {
-        "message": "RAG FastAPI Application",
-        "version": "1.0.0",
+        "message": "RAG FastAPI Application with Conversational Agent",
+        "version": "2.0.0",
         "endpoints": {
             "upload": "/chatbot/api/upload",
             "query": "/chatbot/api/query",
+            "chat": "/chatbot/api/chat",  # New conversational endpoint
             "health": "/chatbot/api/health",
             "stats": "/chatbot/api/stats"
         }
     }
+
+
+@app.post(
+    "/chatbot/api/chat",
+    response_model=ConversationResponse,
+    tags=["Conversation"],
+    summary="Conversational chat with intelligent agent"
+)
+async def chat(request: ConversationRequest):
+    """Chat with Tess, the conversational AI agent.
+
+    This intelligent agent can:
+    - Answer general questions using RAG
+    - Identify potential leads
+    - Conversationally collect lead information
+    - Create leads in Frappe CRM
+    - Maintain conversation context
+    """
+    start_time = time.time()
+
+    try:
+        # Handle message through conversational agent
+        result = await conversational_agent.handle_message(
+            session_id=request.session_id,
+            message=request.message
+        )
+
+        # Prepare response
+        response = ConversationResponse(
+            session_id=request.session_id,
+            message=request.message,
+            answer=result.get("answer", "I apologize, I couldn't process that."),
+            response_type=result.get("response_type", "error"),
+            sources=result.get("sources"),
+            metadata={
+                **result.get("metadata", {}),
+                "processing_time_ms": (time.time() - start_time) * 1000
+            }
+        )
+
+        return response
+
+    except Exception as e:
+        logger.error(f"Chat error: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Chat failed: {str(e)}"
+        )
 
 
 @app.post(

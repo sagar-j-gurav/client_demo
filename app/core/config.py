@@ -34,7 +34,10 @@ class Settings(BaseSettings):
     
     # Database Configuration
     database_url: str = Field(default="postgresql://postgres:postgres@localhost:5432/test_4", env="DATABASE_URL")
-    
+
+    # Frappe MCP Configuration
+    frappe_mcp_url: str = Field(default="http://localhost:3000", env="FRAPPE_MCP_URL")
+
     # Document Type Specific Chunking Strategies
     faq_chunk_size: int = Field(default=256)
     faq_chunk_overlap: int = Field(default=20)
