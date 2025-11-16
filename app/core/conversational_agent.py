@@ -352,8 +352,8 @@ Your response:""")
                 has_name = lead_data.get("first_name") or lead_data.get("lead_name")
 
                 if has_contact and has_name:
-                    # Create lead in Frappe
-                    frappe_result = await self.frappe_client.add_lead(lead_data)
+                    # Create lead in Frappe using MCP
+                    frappe_result = await self.frappe_client.call_tool("add_lead", lead_data)
 
                     if frappe_result.get("success"):
                         # Extract lead ID from response text

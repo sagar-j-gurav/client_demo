@@ -1,4 +1,4 @@
-"""Frappe MCP Client for interacting with Frappe Lead Management."""
+"""Generic MCP Client for dynamic tool discovery and execution."""
 
 import httpx
 import logging
@@ -8,27 +8,78 @@ logger = logging.getLogger(__name__)
 
 
 class FrappeMCPClient:
-    """Client for interacting with Frappe MCP Server via HTTP Streamable transport."""
+    """Generic MCP client with dynamic tool discovery via HTTP Streamable transport."""
 
     def __init__(self, base_url: str = "http://localhost:3000"):
-        """Initialize the Frappe MCP client.
+        """Initialize the MCP client.
 
         Args:
-            base_url: Base URL of the Frappe MCP HTTP server
+            base_url: Base URL of the MCP HTTP server
         """
         self.base_url = base_url
         self.endpoint = f"{base_url}/sse"
         self.client = httpx.AsyncClient(timeout=30.0)
+        self._tools_cache: Optional[List[Dict[str, Any]]] = None
 
-    async def _call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
-        """Call an MCP tool via HTTP Streamable transport.
+    async def list_tools(self, use_cache: bool = True) -> Dict[str, Any]:
+        """Discover available tools from the MCP server.
+
+        Args:
+            use_cache: Use cached tools list if available
+
+        Returns:
+            Dictionary with tools list or error
+        """
+        if use_cache and self._tools_cache is not None:
+            return {
+                "success": True,
+                "tools": self._tools_cache
+            }
+
+        try:
+            request_payload = {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/list",
+                "params": {}
+            }
+
+            logger.info("Discovering MCP tools...")
+            response = await self.client.post(
+                self.endpoint,
+                json=request_payload,
+                headers={"Content-Type": "application/json"}
+            )
+
+            response.raise_for_status()
+            result = response.json()
+
+            tools = result.get("result", {}).get("tools", [])
+            self._tools_cache = tools
+
+            logger.info(f"Discovered {len(tools)} MCP tools: {[t.get('name') for t in tools]}")
+
+            return {
+                "success": True,
+                "tools": tools
+            }
+
+        except Exception as e:
+            logger.error(f"Error listing MCP tools: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+
+    async def call_tool(self, tool_name: str, arguments: Dict[str, Any]) -> Dict[str, Any]:
+        """Call any MCP tool dynamically.
 
         Args:
             tool_name: Name of the tool to call
-            arguments: Tool arguments
+            arguments: Tool arguments as dictionary
 
         Returns:
-            Tool response
+            Tool execution result
         """
         try:
             # MCP protocol message format
@@ -42,7 +93,7 @@ class FrappeMCPClient:
                 }
             }
 
-            logger.info(f"Calling Frappe MCP tool: {tool_name}")
+            logger.info(f"Calling MCP tool: {tool_name}")
             logger.debug(f"Tool arguments: {arguments}")
 
             response = await self.client.post(
@@ -54,7 +105,7 @@ class FrappeMCPClient:
             response.raise_for_status()
             result = response.json()
 
-            logger.info(f"Frappe MCP tool {tool_name} responded successfully")
+            logger.info(f"MCP tool '{tool_name}' executed successfully")
 
             # Extract the content from MCP response
             if "result" in result and "content" in result["result"]:
@@ -63,6 +114,7 @@ class FrappeMCPClient:
                     return {
                         "success": True,
                         "text": content[0].get("text", ""),
+                        "content": content,
                         "full_response": result
                     }
 
@@ -73,112 +125,36 @@ class FrappeMCPClient:
             }
 
         except httpx.HTTPError as e:
-            logger.error(f"HTTP error calling Frappe MCP: {e}")
+            logger.error(f"HTTP error calling MCP tool '{tool_name}': {e}")
             return {
                 "success": False,
                 "error": f"HTTP error: {str(e)}"
             }
         except Exception as e:
-            logger.error(f"Error calling Frappe MCP: {e}")
+            logger.error(f"Error calling MCP tool '{tool_name}': {e}")
             return {
                 "success": False,
                 "error": str(e)
             }
 
-    async def search_lead(
-        self,
-        email: Optional[str] = None,
-        mobile: Optional[str] = None,
-        phone: Optional[str] = None,
-        lead_name: Optional[str] = None,
-        company_name: Optional[str] = None
-    ) -> Dict[str, Any]:
-        """Search for leads in Frappe CRM.
+    async def get_tool_schema(self, tool_name: str) -> Optional[Dict[str, Any]]:
+        """Get the schema for a specific tool.
 
         Args:
-            email: Email address to search
-            mobile: Mobile number to search
-            phone: Phone number to search
-            lead_name: Lead name to search
-            company_name: Company name to search
+            tool_name: Name of the tool
 
         Returns:
-            Search results
+            Tool schema or None if not found
         """
-        args = {}
-        if email:
-            args["email"] = email
-        if mobile:
-            args["mobile"] = mobile
-        if phone:
-            args["phone"] = phone
-        if lead_name:
-            args["lead_name"] = lead_name
-        if company_name:
-            args["company_name"] = company_name
+        tools_result = await self.list_tools()
+        if not tools_result.get("success"):
+            return None
 
-        return await self._call_tool("search_lead", args)
+        for tool in tools_result.get("tools", []):
+            if tool.get("name") == tool_name:
+                return tool
 
-    async def add_lead(self, lead_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Create a new lead in Frappe CRM.
-
-        Args:
-            lead_data: Dictionary containing lead information.
-                Required: At least one of email_id, mobile_no, or phone
-                Optional: first_name, last_name, company_name, custom fields, etc.
-
-        Returns:
-            Lead creation result
-        """
-        return await self._call_tool("add_lead", lead_data)
-
-    async def update_lead(self, lead_id: str, update_data: Dict[str, Any]) -> Dict[str, Any]:
-        """Update an existing lead in Frappe CRM.
-
-        Args:
-            lead_id: Frappe Lead ID (e.g., 'CRM-LEAD-2025-00001')
-            update_data: Dictionary containing fields to update
-
-        Returns:
-            Update result
-        """
-        update_data["lead_id"] = lead_id
-        return await self._call_tool("update_lead", update_data)
-
-    async def list_tools(self) -> Dict[str, Any]:
-        """List available MCP tools.
-
-        Returns:
-            List of available tools
-        """
-        try:
-            request_payload = {
-                "jsonrpc": "2.0",
-                "id": 1,
-                "method": "tools/list",
-                "params": {}
-            }
-
-            response = await self.client.post(
-                self.endpoint,
-                json=request_payload,
-                headers={"Content-Type": "application/json"}
-            )
-
-            response.raise_for_status()
-            result = response.json()
-
-            return {
-                "success": True,
-                "tools": result.get("result", {}).get("tools", [])
-            }
-
-        except Exception as e:
-            logger.error(f"Error listing MCP tools: {e}")
-            return {
-                "success": False,
-                "error": str(e)
-            }
+        return None
 
     async def close(self):
         """Close the HTTP client."""
