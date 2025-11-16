@@ -42,7 +42,7 @@ class Message(Base):
     role = Column(String(50), nullable=False)  # 'user' or 'assistant'
     content = Column(Text, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
-    metadata = Column(JSON, default=dict)  # Additional context
+    extra_data = Column(JSON, default=dict)  # Additional context (renamed from metadata to avoid SQLAlchemy conflict)
 
 
 class ConversationDatabase:
@@ -124,7 +124,7 @@ class ConversationDatabase:
                 session_id=session_id,
                 role=role,
                 content=content,
-                metadata=metadata or {}
+                extra_data=metadata or {}  # Store in extra_data column
             )
             session.add(message)
             session.commit()
@@ -153,7 +153,7 @@ class ConversationDatabase:
                     "role": msg.role,
                     "content": msg.content,
                     "timestamp": msg.timestamp.isoformat(),
-                    "metadata": msg.metadata
+                    "metadata": msg.extra_data  # Read from extra_data column
                 }
                 for msg in messages
             ]
